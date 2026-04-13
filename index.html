@@ -131,7 +131,7 @@ function dbSet(p,v){return db.ref(p).set(v)}function dbPush(p,v){var r=db.ref(p)
 function uid(){return Math.random().toString(36).slice(2,8)}function tn(id){return S.teams[id]?S.teams[id].name:'?'}
 function toArr(o){return o?Object.entries(o).map(function(e){var obj={id:e[0]};var v=e[1];if(typeof v==='object'&&v!==null){for(var k in v)obj[k]=v[k]}else{obj.value=v}return obj}):[]}
 function getWDL(a,b){return a>b?'W':a<b?'L':'D'}
-function mPts(pred,res){if(!res||pred.sA==null||pred.sB==null)return 0;if(pred.sA===res.sA&&pred.sB===res.sB)return PTS.ex;if(getWDL(pred.sA,pred.sB)===getWDL(res.sA,res.sB))return PTS.res;return 0}
+function mPts(pred,res){if(!res||pred.sA==null||pred.sB==null)return 0;if(parseInt(pred.sA)===parseInt(res.sA)&&parseInt(pred.sB)===parseInt(res.sB))return PTS.ex;if(getWDL(parseInt(pred.sA),parseInt(pred.sB))===getWDL(parseInt(res.sA),parseInt(res.sB)))return PTS.res;return 0}
 function gPPts(pred,actual){if(!pred||!actual||actual.length<2)return 0;if(pred[0]===actual[0]&&pred[1]===actual[1])return PTS.gO;var ps=[pred[0],pred[1]].sort().join(',');var as=actual.slice(0,2).sort().join(',');if(ps===as)return PTS.gU;return 0}
 function stand(gid){var g=S.groups[gid];if(!g)return[];var tids=g.teamIds||[],s={};tids.forEach(function(id){s[id]={pts:0,gf:0,ga:0}});Object.entries(S.matches).forEach(function(e){var mid=e[0],m=e[1];if(m.groupId!==gid)return;var r=S.results[mid];if(!r)return;if(s[m.tA]){s[m.tA].gf+=r.sA;s[m.tA].ga+=r.sB}if(s[m.tB]){s[m.tB].gf+=r.sB;s[m.tB].ga+=r.sA}if(r.sA>r.sB){if(s[m.tA])s[m.tA].pts+=3}else if(r.sA<r.sB){if(s[m.tB])s[m.tB].pts+=3}else{if(s[m.tA])s[m.tA].pts+=1;if(s[m.tB])s[m.tB].pts+=1}});return Object.entries(s).sort(function(a,b){return b[1].pts-a[1].pts||(b[1].gf-b[1].ga)-(a[1].gf-a[1].ga)||b[1].gf-a[1].gf}).map(function(e){return e[0]})}
 
@@ -185,7 +185,7 @@ function board(){
   var ga=toArr(S.groups);
   return toArr(S.users).map(function(u){
     var total=0,exact=0,res=0,gpPts=0;
-    Object.entries(S.preds).forEach(function(e){var mid=e[0],mp=e[1];var pred=mp[u.id],r=S.results[mid];if(pred&&r){var p=mPts(pred,r);total+=p;if(p===PTS.ex)exact++;else if(p===PTS.res)res++}});
+    Object.entries(S.preds).forEach(function(e){var mid=e[0],mp=e[1];var m=S.matches[mid];if(m&&m.groupId)return;var pred=mp[u.id],r=S.results[mid];if(pred&&r){var p=mPts(pred,r);total+=p;if(p===PTS.ex)exact++;else if(p===PTS.res)res++}});
     ga.forEach(function(g){
       var gp=S.groupPreds[g.id]?S.groupPreds[g.id][u.id]:null;
       if(gp){var gm=Object.entries(S.matches).filter(function(e){return e[1].groupId===g.id});var allDone=gm.length>0&&gm.every(function(e){return S.results[e[0]]});if(allDone){var a=stand(g.id);var p=gPPts(gp,a);total+=p;gpPts+=p}}
@@ -246,11 +246,7 @@ function vPronos(el){
     else el.appendChild(h('div',{style:{fontSize:'12px',color:'var(--dim)',marginBottom:'10px'}},'Ordre = '+PTS.gO+' pts · Désordre = '+PTS.gU+' pts'));
     groups.forEach(function(g){renderGP(el,g)});
   }
-  if(gm.length){
-    el.appendChild(h('h3',{className:'sub-title',style:{color:'var(--green)',marginTop:'22px'}},'⚽ MATCHS DE POULES'));
-    if(S.config.lockPoules)el.appendChild(h('div',{style:{fontSize:'12px',color:'var(--red)',marginBottom:'10px'}},'🔒 Pronos poules fermés'));
-    groups.forEach(function(g){var ms=gm.filter(function(m){return m.groupId===g.id});if(!ms.length)return;el.appendChild(h('div',{style:{fontFamily:'var(--font-head)',fontSize:'14px',fontWeight:'700',color:'var(--gold)',letterSpacing:'3px',marginBottom:'6px',marginTop:'12px'}},g.name));ms.forEach(function(m){renderMP(el,m)})});
-  }
+
   if(km.length){
     el.appendChild(h('h3',{className:'sub-title',style:{color:'var(--gold)',marginTop:'22px'}},'🏆 PHASE FINALE'));
     var lastPh='';km.sort(function(a,b){var o={Quart:1,Demi:2,Finale:3};return(o[a.phase]||9)-(o[b.phase]||9)});
@@ -393,8 +389,8 @@ function aPronos(el){
       var gp=S.groupPreds[g.id]?S.groupPreds[g.id][u.id]:null;
       if(gp){card.appendChild(h('div',{className:'pred-detail'},h('span',{style:{color:'var(--gold)'}},g.name+' : '),h('span',null,'1er '+tn(gp[0])+' · 2ème '+tn(gp[1]))))}
     });
-    // Match predictions
-    matches.forEach(function(m){
+    // Match predictions (knockout only)
+    matches.filter(function(m){return !m.groupId}).forEach(function(m){
       var pred=S.preds[m.id]?S.preds[m.id][u.id]:null;
       if(pred){
         var res=S.results[m.id];var pts=res?mPts(pred,res):null;
