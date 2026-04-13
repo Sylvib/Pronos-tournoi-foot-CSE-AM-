@@ -205,7 +205,7 @@ function board(){
     });
     ga.forEach(function(g){
       var gp=S.groupPreds[g.id]?S.groupPreds[g.id][u.id]:null;
-      if(gp){var a=stand(g.id);var p=gPPts(gp,a);total+=p;gpPts+=p}
+      if(gp){var gm=Object.entries(S.matches).filter(function(e){return e[1].groupId===g.id});var allDone=gm.length>0&&gm.every(function(e){return S.results[e[0]]});if(allDone){var a=stand(g.id);var p=gPPts(gp,a);total+=p;gpPts+=p}}
     });
     return Object.assign({},u,{total:total,exact:exact,res:res,gpPts:gpPts});
   }).sort(function(a,b){return b.total-a.total||b.exact-a.exact});
