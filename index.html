@@ -125,23 +125,25 @@ function aPD(ph){var pm=Object.entries(S.matches).filter(function(e){return e[1]
 function sG(){return ta(S.groups).sort(function(a,b){return a.name.localeCompare(b.name)})}
 
 // Bracket: QF1=1A vs 3B, QF2=1B vs 3A, QF3=1C vs 2A, QF4=2B vs 2C
+var genLock={Quart:false,Demi:false,Finale:false};
+function cntPhase(ph){return Object.values(S.matches).filter(function(m){return m.phase===ph}).length}
 function cGen(){
 var gr=sG();if(gr.length<3)return;
-if(aGD()&&!pE('Quart')){
+if(aGD()&&cntPhase('Quart')===0&&!genLock.Quart){
 var sA=std(gr[0].id),sB=std(gr[1].id),sC=std(gr[2].id);
-if(sA.length>=3&&sB.length>=3&&sC.length>=2){
+if(sA.length>=3&&sB.length>=3&&sC.length>=2){genLock.Quart=true;
 Pu('matches',{tA:sA[0],tB:sB[2],phase:'Quart',groupId:null,qN:1});
 Pu('matches',{tA:sB[0],tB:sA[2],phase:'Quart',groupId:null,qN:2});
 Pu('matches',{tA:sC[0],tB:sA[1],phase:'Quart',groupId:null,qN:3});
 Pu('matches',{tA:sB[1],tB:sC[1],phase:'Quart',groupId:null,qN:4});
-}}
-if(pE('Quart')&&aPD('Quart')&&!pE('Demi')){
+setTimeout(function(){genLock.Quart=false},3000)}}
+if(cntPhase('Quart')===4&&aPD('Quart')&&cntPhase('Demi')===0&&!genLock.Demi){
 var q=Object.entries(S.matches).filter(function(e){return e[1].phase==='Quart'}).sort(function(a,b){return(a[1].qN||0)-(b[1].qN||0)});
 if(q.length===4){var w=q.map(function(e){return mW(e[1],S.results[e[0]])});
-if(w[0]&&w[1]&&w[2]&&w[3]){Pu('matches',{tA:w[0],tB:w[1],phase:'Demi',groupId:null,sN:1});Pu('matches',{tA:w[2],tB:w[3],phase:'Demi',groupId:null,sN:2})}}}
-if(pE('Demi')&&aPD('Demi')&&!pE('Finale')){
+if(w[0]&&w[1]&&w[2]&&w[3]){genLock.Demi=true;Pu('matches',{tA:w[0],tB:w[1],phase:'Demi',groupId:null,sN:1});Pu('matches',{tA:w[2],tB:w[3],phase:'Demi',groupId:null,sN:2});setTimeout(function(){genLock.Demi=false},3000)}}}
+if(cntPhase('Demi')===2&&aPD('Demi')&&cntPhase('Finale')===0&&!genLock.Finale){
 var sm=Object.entries(S.matches).filter(function(e){return e[1].phase==='Demi'}).sort(function(a,b){return(a[1].sN||0)-(b[1].sN||0)});
-if(sm.length===2){var f1=mW(sm[0][1],S.results[sm[0][0]]),f2=mW(sm[1][1],S.results[sm[1][0]]);if(f1&&f2)Pu('matches',{tA:f1,tB:f2,phase:'Finale',groupId:null})}}
+if(sm.length===2){var f1=mW(sm[0][1],S.results[sm[0][0]]),f2=mW(sm[1][1],S.results[sm[1][0]]);if(f1&&f2){genLock.Finale=true;Pu('matches',{tA:f1,tB:f2,phase:'Finale',groupId:null});setTimeout(function(){genLock.Finale=false},3000)}}}
 }
 
 function getQual(){var gr=sG();var q={semis:[],finals:[],winner:null};
@@ -290,7 +292,16 @@ function aCf(el){var us=ta(S.users);var np=Object.keys(S.preds).length;
 el.appendChild(h('div',{className:'cd'},h('div',{className:'lb2'},'Stats'),h('div',{style:{fontSize:'13px',lineHeight:'2'}},'👥 '+us.length+' participants · 📝 '+np+' pronos')));
 var pc=h('div',{className:'cd'});pc.appendChild(h('div',{className:'lb2'},'Participants (✕ supprimer)'));if(us.length){var tb=h('div',{style:{fontSize:'12px',marginTop:'6px'}});us.forEach(function(u){tb.appendChild(h('div',{style:{display:'flex',alignItems:'center',gap:'6px',padding:'4px 0',borderBottom:'1px solid var(--border)'}},h('span',{style:{color:'var(--green)',fontFamily:'var(--fh)',fontWeight:'600',flex:'1'}},u.displayName||u.name),h('span',{style:{color:'var(--dim)',flex:'1',fontSize:'11px'}},u.email),h('button',{className:'dlb',onClick:function(){if(!confirm('Supprimer '+(u.displayName||u.name)+' ?'))return;X('users/'+u.id);X('preds/'+u.id)}},'✕')))});pc.appendChild(tb)}el.appendChild(pc);
 el.appendChild(h('div',{className:'cd'},h('div',{className:'lb2'},'PIN admin'),h('div',{style:{fontSize:'12px',color:'var(--dim)'}},'PIN: ',h('strong',{style:{color:'var(--green)'}},PIN))));
-el.appendChild(h('div',{className:'cd',style:{borderColor:'var(--gold)'}},h('div',{className:'lb2'},'Reset pronos'),h('button',{className:'bt bgl',onClick:function(){if(!confirm('Supprimer TOUS les pronos ?'))return;if(!confirm('Sûr ?'))return;X('preds')}},'🗑️ Reset pronos')));
+// Reset par phase
+var rPh=h('div',{className:'cd',style:{borderColor:'var(--gold)'}});rPh.appendChild(h('div',{className:'lb2'},'Réinitialiser une phase'));
+rPh.appendChild(h('div',{style:{fontSize:'11px',color:'var(--dim)',marginBottom:'10px',lineHeight:'1.6'}},'Efface les résultats d\'une phase. Réinitialiser les poules ou les quarts efface aussi les phases suivantes (qui se régénéreront avec les bons résultats).'));
+var rg=h('div',{style:{display:'flex',gap:'6px',flexWrap:'wrap'}});
+rg.appendChild(h('button',{className:'bt bs bgh',onClick:function(){if(!confirm('Effacer tous les résultats des matchs de POULES ? (les quarts/demis/finale seront aussi effacés)'))return;Object.entries(S.matches).forEach(function(e){var m=e[1];if(m.groupId){if(S.results[e[0]])X('results/'+e[0])}else{X('matches/'+e[0]);if(S.results[e[0]])X('results/'+e[0])}});genLock.Quart=false;genLock.Demi=false;genLock.Finale=false}},'⚽ Reset Poules'));
+rg.appendChild(h('button',{className:'bt bs bgh',onClick:function(){if(!confirm('Effacer QUARTS + demis + finale ? (ils se régénéreront à partir des résultats de poules)'))return;Object.entries(S.matches).forEach(function(e){if(!e[1].groupId){X('matches/'+e[0]);if(S.results[e[0]])X('results/'+e[0])}});genLock.Quart=false;genLock.Demi=false;genLock.Finale=false}},'🔥 Reset Quarts'));
+rg.appendChild(h('button',{className:'bt bs bgh',onClick:function(){if(!confirm('Effacer DEMIS + finale ? (elles se régénéreront à partir des résultats des quarts)'))return;Object.entries(S.matches).forEach(function(e){var m=e[1];if(m.phase==='Demi'||m.phase==='Finale'){X('matches/'+e[0]);if(S.results[e[0]])X('results/'+e[0])}});genLock.Demi=false;genLock.Finale=false}},'⚡ Reset Demis'));
+rg.appendChild(h('button',{className:'bt bs bgh',onClick:function(){if(!confirm('Effacer la FINALE ? (elle se régénérera à partir des demis)'))return;Object.entries(S.matches).forEach(function(e){if(e[1].phase==='Finale'){X('matches/'+e[0]);if(S.results[e[0]])X('results/'+e[0])}});genLock.Finale=false}},'🏆 Reset Finale'));
+rPh.appendChild(rg);el.appendChild(rPh);
+el.appendChild(h('div',{className:'cd',style:{borderColor:'var(--gold)'}},h('div',{className:'lb2'},'Reset pronos'),h('button',{className:'bt bgl',onClick:function(){if(!confirm('Supprimer TOUS les pronos des participants ?'))return;if(!confirm('Sûr ?'))return;X('preds')}},'🗑️ Reset pronos')));
 el.appendChild(h('div',{className:'cd',style:{borderColor:'var(--red)'}},h('div',{className:'lb2'},'Zone dangereuse'),h('button',{className:'bt brl',onClick:function(){if(!confirm('TOUT SUPPRIMER ?'))return;if(!confirm('DERNIÈRE CHANCE ?'))return;PP.forEach(function(p){X(p)})}},'🗑️ Tout réinitialiser')))}
 
 }catch(e){document.getElementById('em').textContent='❌ '+e.message}}
