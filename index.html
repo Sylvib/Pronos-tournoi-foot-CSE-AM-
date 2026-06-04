@@ -144,6 +144,11 @@ if(w[0]&&w[1]&&w[2]&&w[3]){genLock.Demi=true;Pu('matches',{tA:w[0],tB:w[1],phase
 if(cntPhase('Demi')===2&&aPD('Demi')&&cntPhase('Finale')===0&&!genLock.Finale){
 var sm=Object.entries(S.matches).filter(function(e){return e[1].phase==='Demi'}).sort(function(a,b){return(a[1].sN||0)-(b[1].sN||0)});
 if(sm.length===2){var f1=mW(sm[0][1],S.results[sm[0][0]]),f2=mW(sm[1][1],S.results[sm[1][0]]);if(f1&&f2){genLock.Finale=true;Pu('matches',{tA:f1,tB:f2,phase:'Finale',groupId:null});setTimeout(function(){genLock.Finale=false},3000)}}}
+// AUTO-CORRECTION: supprimer uniquement les doublons (sans toucher aux équipes choisies manuellement)
+var demis=Object.entries(S.matches).filter(function(e){return e[1].phase==='Demi'});
+if(demis.length>2){var seen={};demis.forEach(function(e){var key=e[1].sN||0;if(seen[key]){X('matches/'+e[0]);if(S.results[e[0]])X('results/'+e[0])}else seen[key]=true})}
+var quarts=Object.entries(S.matches).filter(function(e){return e[1].phase==='Quart'});
+if(quarts.length>4){var sq={};quarts.forEach(function(e){var key=e[1].qN||0;if(sq[key]){X('matches/'+e[0]);if(S.results[e[0]])X('results/'+e[0])}else sq[key]=true})}
 }
 
 function getQual(){var gr=sG();var q={semis:[],finals:[],winner:null};
@@ -258,7 +263,10 @@ el.appendChild(h('div',{style:{marginTop:'12px'}},h('button',{className:'bt bgl'
 
 function aMt(el){var mt=ta(S.matches),gm=mt.filter(function(m){return m.groupId}),km=mt.filter(function(m){return !m.groupId});
 if(gm.length){el.appendChild(h('div',{className:'stt',style:{color:'var(--dim)'}},'POULES ('+gm.length+')'));gm.forEach(function(m){el.appendChild(h('div',{style:{display:'flex',alignItems:'center',gap:'6px',padding:'4px 0',borderBottom:'1px solid var(--border)',fontSize:'12px'}},h('span',{style:{color:'var(--dim)',minWidth:'60px',fontFamily:'var(--fh)',fontWeight:'600'}},m.phase||''),h('span',{style:{flex:'1'}},tn(m.tA)+' vs '+tn(m.tB))))})}
-if(km.length){el.appendChild(h('div',{className:'stt',style:{color:'var(--gold)',marginTop:'14px'}},'ÉLIMINATOIRES ('+km.length+')'));km.sort(function(a,b){var o={Quart:1,Demi:2,Finale:3};return(o[a.phase]||9)-(o[b.phase]||9)});km.forEach(function(m){el.appendChild(h('div',{style:{display:'flex',alignItems:'center',gap:'6px',padding:'4px 0',borderBottom:'1px solid var(--border)',fontSize:'12px'}},h('span',{className:'bg bgo'},m.phase),h('span',{style:{flex:'1'}},tn(m.tA)+' vs '+tn(m.tB)),h('button',{className:'dlb',style:{fontSize:'12px'},onClick:function(){if(confirm('Supprimer ?'))X('matches/'+m.id)}},'✕')))})}
+if(km.length){el.appendChild(h('div',{className:'stt',style:{color:'var(--gold)',marginTop:'14px'}},'ÉLIMINATOIRES ('+km.length+')'));el.appendChild(h('div',{style:{fontSize:'11px',color:'var(--dim)',marginBottom:'8px'}},'Tu peux changer les équipes manuellement via les menus déroulants.'));km.sort(function(a,b){var o={Quart:1,Demi:2,Finale:3};return(o[a.phase]||9)-(o[b.phase]||9)});var allTm=ta(S.teams);km.forEach(function(m){
+var selA=h('select',{className:'sel',style:{fontSize:'12px',flex:'1',minWidth:'90px'}});allTm.forEach(function(t){selA.appendChild(h('option',{value:t.id,selected:t.id===m.tA},t.name))});selA.addEventListener('change',function(){D('matches/'+m.id+'/tA',selA.value)});
+var selB=h('select',{className:'sel',style:{fontSize:'12px',flex:'1',minWidth:'90px'}});allTm.forEach(function(t){selB.appendChild(h('option',{value:t.id,selected:t.id===m.tB},t.name))});selB.addEventListener('change',function(){D('matches/'+m.id+'/tB',selB.value)});
+el.appendChild(h('div',{className:'cd',style:{padding:'10px'}},h('div',{style:{display:'flex',alignItems:'center',gap:'6px',flexWrap:'wrap'}},h('span',{className:'bg bgo'},m.phase),selA,h('span',{style:{color:'var(--dim)',fontFamily:'var(--fh)',fontSize:'11px'}},'VS'),selB,h('button',{className:'dlb',onClick:function(){if(confirm('Supprimer ce match ?')){X('matches/'+m.id);if(S.results[m.id])X('results/'+m.id)}}},'✕')),S.results[m.id]?h('div',{style:{fontSize:'11px',color:'var(--green)',marginTop:'6px'}},'🏆 Vainqueur saisi : '+tn(S.results[m.id].winner)):null))})}
 el.appendChild(h('div',{className:'cd',style:{marginTop:'14px'}},h('div',{className:'lb2'},'Auto-génération'),h('div',{style:{fontSize:'11px',color:'var(--dim)',lineHeight:'1.7',marginBottom:'8px'}},'QF1: 1erA vs 3èmeB · QF2: 1erB vs 3èmeA · QF3: 1erC vs 2èmeA · QF4: 2èmeB vs 2èmeC'),h('button',{className:'bt bgl',onClick:function(){if(!confirm('Régénérer les éliminatoires ?'))return;Object.entries(S.matches).forEach(function(e){if(!e[1].groupId){X('matches/'+e[0]);if(S.results[e[0]])X('results/'+e[0])}});setTimeout(function(){cGen()},1500)}},'🔄 Régénérer')));
 if(!mt.length)el.appendChild(h('div',{className:'cd'},'Aucun match.'))}
 
