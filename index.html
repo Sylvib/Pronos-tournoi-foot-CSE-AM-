@@ -191,7 +191,7 @@ var sels=[];var lbls=['1er','2ème','3ème'];
 for(var k=0;k<nq;k++){var sl=h('select',{className:'sel',id:'g'+k+'_'+g.id});rw.appendChild(h('div',{style:{flex:'1',minWidth:'110px'}},h('div',{className:'lb2'},lbls[k]),sl));sels.push(sl)}
 grpSels[g.id]={sels:sels,teams:t};
 function rcg(){var vals=sels.map(function(s){return s.value});sels.forEach(function(s,idx){var cur=s.value;s.innerHTML='';s.appendChild(h('option',{value:''},'— '+lbls[idx]+' —'));t.forEach(function(tid){var tk=vals.indexOf(tid)!==-1&&vals.indexOf(tid)!==idx;if(!tk)s.appendChild(h('option',{value:tid,selected:tid===cur},tn(tid)))})})}
-sels.forEach(function(s){s.addEventListener('change',rcg)});
+sels.forEach(function(s){s.addEventListener('change',function(){rcg();if(typeof rC==='function')rC()})});
 rcg();
 if(ex)sels.forEach(function(s,i){if(ex[i])s.value=ex[i]});rcg();
 cd.appendChild(rw);el.appendChild(cd)})}
@@ -201,8 +201,10 @@ el.appendChild(h('h3',{className:'stt',style:{color:'var(--gold)',marginTop:'18p
 var fD=h('div',{className:'cd'});var fS=[];for(var i2=0;i2<2;i2++){var sl2=h('select',{className:'sel',style:{marginBottom:'6px'},id:'fin_'+i2});fS.push(sl2);fD.appendChild(sl2)}el.appendChild(fD);
 el.appendChild(h('h3',{className:'stt',style:{color:'var(--gold)',marginTop:'18px'}},'🥇 VAINQUEUR ('+PTS.win+'pts)'));
 var wD=h('div',{className:'cd'});var wS=h('select',{className:'sel',id:'winner'});wD.appendChild(wS);el.appendChild(wD);
-function rC(){var sv=sS.map(function(s){return s.value});sS.forEach(function(s,idx){var cur=s.value;s.innerHTML='';s.appendChild(h('option',{value:''},'— Demi-finaliste '+(idx+1)+' —'));allT.forEach(function(t){var tk=sv.indexOf(t.id)!==-1&&sv.indexOf(t.id)!==idx;if(!tk)s.appendChild(h('option',{value:t.id,selected:t.id===cur},t.name))})});
-var fv=fS.map(function(s){return s.value});var sc=sv.filter(function(v){return v});fS.forEach(function(s,idx){var cur=s.value;s.innerHTML='';s.appendChild(h('option',{value:''},'— Finaliste '+(idx+1)+' —'));sc.forEach(function(tid){var tk=fv.indexOf(tid)!==-1&&fv.indexOf(tid)!==idx;if(!tk)s.appendChild(h('option',{value:tid,selected:tid===cur},tn(tid)))});if(cur&&sc.indexOf(cur)===-1)s.value=''});
+function getQualPreds(){var ids=[];Object.keys(grpSels).forEach(function(gid){grpSels[gid].sels.forEach(function(s){if(s.value)ids.push(s.value)})});return ids}
+function rC(){var qual=getQualPreds();var sv=sS.map(function(s){return s.value});
+sS.forEach(function(s,idx){var cur=s.value;s.innerHTML='';s.appendChild(h('option',{value:''},'— Demi-finaliste '+(idx+1)+' —'));qual.forEach(function(tid){var tk=sv.indexOf(tid)!==-1&&sv.indexOf(tid)!==idx;if(!tk)s.appendChild(h('option',{value:tid,selected:tid===cur},tn(tid)))});if(cur&&qual.indexOf(cur)===-1)s.value=''});
+var sv2=sS.map(function(s){return s.value});var fv=fS.map(function(s){return s.value});var sc=sv2.filter(function(v){return v});fS.forEach(function(s,idx){var cur=s.value;s.innerHTML='';s.appendChild(h('option',{value:''},'— Finaliste '+(idx+1)+' —'));sc.forEach(function(tid){var tk=fv.indexOf(tid)!==-1&&fv.indexOf(tid)!==idx;if(!tk)s.appendChild(h('option',{value:tid,selected:tid===cur},tn(tid)))});if(cur&&sc.indexOf(cur)===-1)s.value=''});
 var fc=fS.map(function(s){return s.value}).filter(function(v){return v});var cW=wS.value;wS.innerHTML='';wS.appendChild(h('option',{value:''},'— Le vainqueur sera... —'));fc.forEach(function(tid){wS.appendChild(h('option',{value:tid,selected:tid===cW},tn(tid)))});if(cW&&fc.indexOf(cW)===-1)wS.value=''}
 sS.forEach(function(s){s.addEventListener('change',rC)});fS.forEach(function(s){s.addEventListener('change',rC)});
 rC();
