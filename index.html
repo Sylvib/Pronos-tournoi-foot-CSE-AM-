@@ -23,8 +23,8 @@ input:focus,select:focus{border-color:var(--green)!important;box-shadow:0 0 0 3p
 .nb{max-width:960px;margin:0 auto;padding:0 20px;display:flex;gap:2px}
 .nvb{font-size:12px;font-weight:700;letter-spacing:1px;padding:8px 14px;text-transform:uppercase;background:transparent;color:var(--dim);border-bottom:3px solid transparent}
 .nvb:hover{color:var(--text);background:rgba(61,184,85,.05);transform:none}.nvb.act{color:var(--green);border-bottom-color:var(--green);background:rgba(61,184,85,.08)}
-.mn{max-width:960px;margin:0 auto;padding:20px 14px}.vw{animation:su .35s ease}.hid{display:none!important}
-.cd{background:var(--card);border-radius:12px;padding:16px;margin-bottom:12px;border:1px solid var(--border);animation:su .35s ease}
+.mn{max-width:960px;margin:0 auto;padding:20px 14px}.vw{}.hid{display:none!important}
+.cd{background:var(--card);border-radius:12px;padding:16px;margin-bottom:12px;border:1px solid var(--border);}
 .tt{font-family:var(--ft);font-size:18px;letter-spacing:2px;color:var(--white);text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;gap:8px}
 .tt::before{content:'';width:4px;height:24px;background:var(--green);border-radius:2px;flex-shrink:0}.ta{color:var(--green)}
 .lb2{font-size:10px;color:var(--dim);margin-bottom:3px;font-family:var(--fh);font-weight:700;letter-spacing:1.5px;text-transform:uppercase}
@@ -100,7 +100,7 @@ var SEED_GROUPS=[
 
 setTimeout(function(){if(!S.ready)document.getElementById('em').innerHTML='⚠️ Lent '+lc+'/'+PP.length},10000);
 db.ref('.info/connected').on('value',function(s){if(s.val())document.getElementById('em').textContent='✅ Connecté'});
-PP.forEach(function(p){db.ref(p).on('value',function(s){S[p]=s.val()||(p==='config'?{locked:false}:{});lc++;document.getElementById('em').textContent=lc+'/'+PP.length;if(lc>=PP.length&&!S.ready){S.ready=true;document.getElementById('ld').classList.add('hid');document.getElementById('app').classList.remove('hid');seedData();aLg();cGen();R()}else if(S.ready){cGen();R()}},function(e){document.getElementById('em').textContent='❌ '+e.message})});
+PP.forEach(function(p){db.ref(p).on('value',function(s){S[p]=s.val()||(p==='config'?{locked:false}:{});lc++;document.getElementById('em').textContent=lc+'/'+PP.length;if(lc>=PP.length&&!S.ready){S.ready=true;document.getElementById('ld').classList.add('hid');document.getElementById('app').classList.remove('hid');seedData();aLg();cGen();R()}else if(S.ready){cGen();if(!(S.v==='pronos'&&S.user&&!S.config.locked&&!S.aOk))R()}},function(e){document.getElementById('em').textContent='❌ '+e.message})});
 
 var D=function(p,v){return db.ref(p).set(v)},Pu=function(p,v){var r=db.ref(p).push();r.set(v);return r.key},X=function(p){return db.ref(p).remove()};
 function uid(){return Math.random().toString(36).slice(2,8)}function tn(i){return S.teams[i]?S.teams[i].name:'?'}
