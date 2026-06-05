@@ -277,7 +277,7 @@ cd.appendChild(h('button',{className:'bt',onClick:function(){var em=eI.value.tri
 var ex=null;Object.entries(S.users).forEach(function(e){if(e[1].email&&e[1].email.trim().toLowerCase()===em)ex=e});
 if(ex){S.user={id:ex[0],email:ex[1].email,name:ex[1].name,displayName:ex[1].displayName||emailToName(ex[1].email)};localStorage.setItem('tu',JSON.stringify(S.user));R();return}
 var dn=emailToName(em);var id=uid(),dt={email:em,name:em.split('@')[0],displayName:dn};D('users/'+id,dt);S.user={id:id,email:em,name:dt.name,displayName:dn};localStorage.setItem('tu',JSON.stringify(S.user));R()
-}},"C'est parti !"));cd.appendChild(h('div',{style:{fontSize:'11px',color:'var(--dim)',marginTop:'10px'}},'Ton prénom et nom seront extraits de ton email.'));el.appendChild(cd)}
+}},"C'est parti !"));cd.appendChild(h('div',{style:{fontSize:'11px',color:'var(--dim)',marginTop:'10px',lineHeight:'1.6'}},'Ton prénom et ton nom seront extraits de ton email et affichés dans le classement et le Top 5 des meilleurs pronostiqueurs, visible par les autres participants.'));el.appendChild(cd)}
 
 // ═══ CLASSEMENT ═══
 function vC(el){var b=board();el.appendChild(h('h2',{className:'tt'},h('span',null,'Classement '),h('span',{className:'ta'},'général')));if(!b.length){el.appendChild(h('div',{className:'cd'},'Aucun participant.'));return}var cl=['var(--gold)','var(--silver)','var(--bronze)','var(--dim)'],ic=['🥇','🥈','🥉'];
